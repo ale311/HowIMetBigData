@@ -8,8 +8,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import javax.print.attribute.standard.MediaSize.Engineering;
 
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -97,7 +100,10 @@ public class JavaAPIExample{
 			//Accedo a LASTFM per estrarre nazionalità dell'utente
 			User user = User.getInfo(username, apiKey);
 			String uname = user.getName();
-			String country = user.getCountry();
+			
+			String c = user.getCountry();
+			Locale countryLocale = new Locale ("", c);
+			String country = countryLocale.getDisplayCountry(Locale.ENGLISH);
 			queryString = "merge(u:Utente{Utente:{username}})"+
 						"merge(n:Nazione{Nazione:{Nazione}})"+
 						"merge(u)-[:VIVE_IN]-(n)";
