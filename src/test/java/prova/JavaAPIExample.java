@@ -14,6 +14,7 @@ import java.util.Set;
 
 import javax.print.attribute.standard.MediaSize.Engineering;
 
+import org.jmusixmatch.MusixMatch;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -39,14 +40,17 @@ public class JavaAPIExample{
 	private static final String username = "ale_311";
 	private static final String apiKey ="95f57bc8e14bd2eee7f1df8595291493";
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db";
-
+	private static final String musicKey = "c0e18db4aa3919ba5fd2399a747b2eb9";
 	public enum MieRelazioni implements RelationshipType{
 		ASCOLTA, COMPONE, AMICO, VICINO, TAGGED, VIVE;
 	}
 	public static void main(String[] args) throws IOException {
 		Date currentDate = new Date();
-		System.out.println( "Starting database ... " + currentDate.getTime() );
+		System.out.println( "Starting database ... " + currentDate.getHours()+":"+currentDate.getMinutes() );
 		FileUtils.deleteRecursively( new File( DB_PATH ) );
+		
+		//avvio istanza di musicmatch
+		MusixMatch musixMatch = new MusixMatch(musicKey);
 
 		HashSet<Track> insiemeTracce = new HashSet<Track>();
 		HashSet<String> insiemeArtisti = new HashSet<String>();
@@ -100,14 +104,19 @@ public class JavaAPIExample{
 			//Accedo a LASTFM per estrarre nazionalità dell'utente
 			User user = User.getInfo(username, apiKey);
 			String uname = user.getName();
-			
+			int age = user.getAge();
+			String gender = user.getGender();
 			String c = user.getCountry();
+			int playcount = user.getPlaycount();
 			Locale countryLocale = new Locale ("", c);
 			String country = countryLocale.getDisplayCountry(Locale.ENGLISH);
-			queryString = "merge(u:Utente{Utente:{username}})"+
+			queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}, Playcount:{playcount}})"+
 						"merge(n:Nazione{Nazione:{Nazione}})"+
 						"merge(u)-[:VIVE_IN]-(n)";
 			parameters.put("username", username);
+			parameters.put("age", age);
+			parameters.put("gender", gender);
+			parameters.put("playcount", playcount);
 			parameters.put("Nazione", country);
 			resultIterator = graphDb.execute(queryString, parameters).columnAs("utente vive in nazione");
 			//fine creazione nodi country
@@ -121,11 +130,13 @@ public class JavaAPIExample{
 				insiemeTracce.add(tracciaCorrente);
 				//grafo: costruisco relazione tra utente e traccia
 				String nomeTraccia = tracciaCorrente.getName();
+				String mbid = tracciaCorrente.getMbid();
 				queryString = "merge(u:Utente{Utente:{username}})"+
-						"merge(t:Traccia{Traccia:{Traccia}})"+	
+						"merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}})"+	
 						"merge(u)-[:ASCOLTA]-(t)";
 				parameters.put("username", username);
 				parameters.put("Traccia", nomeTraccia);
+				parameters.put("mbid",mbid);
 				resultIterator = graphDb.execute(queryString, parameters).columnAs("utente ascolta tracce");
 			}
 			parameters.clear();
@@ -140,13 +151,14 @@ public class JavaAPIExample{
 				//costruisco la collezione di Artisti
 				insiemeArtisti.add(tracciaCorrente.getArtist());
 				
-				String mbidSTRING = tracciaCorrente.getMbid();
+				String mbid = tracciaCorrente.getMbid();
 				//grafo: costruisco relazione tra artista e traccia che ha composto
-				queryString = "merge(t:Traccia{Traccia:{Traccia}}) "+ 
+				queryString = "merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}}) "+ 
 						"merge(a:Artista{Artista:{Artista}})"+
 						"merge(a)-[:COMPONE]-(t)";
 				parameters.put("Traccia", nomeTraccia);
 				parameters.put("Artista", artistaTraccia);
+				parameters.put("mbid",mbid);
 				resultIterator = graphDb.execute(queryString, parameters).columnAs("artista compone tracce");
 
 			}
@@ -168,16 +180,22 @@ public class JavaAPIExample{
 				resultIterator = graphDb.execute(queryString, parameters).columnAs("album contiene tracce");
 			}
 			
+			parameters.clear();
+			
 			for(String a : insiemeArtisti){
 				PaginatedResult<Event> eventiDellArtista = Artist.getEvents(a, apiKey);
 				for(Event evento : eventiDellArtista){
-					String description = evento.getDescription();
+					//String description = evento.getDescription();
 					Venue venue = evento.getVenue();
-					
+					String countryEvento = venue.getCountry();
+					queryString = "merge(c:Nazione{Nazione:{Nazione}})"+
+								"merge(a:Artista{Artista:{Artista}})"+
+								"merge(a)-[:PROGRAMMA_EVENTO]-(c)";
+					parameters.put("Nazione", countryEvento);
+					parameters.put("Artista", a);
+					resultIterator = graphDb.execute(queryString, parameters).columnAs("artista programma evento");
 					System.out.println(venue.getCountry());
-					System.out.println(venue.getId());
-					System.out.println(venue.getName());
-					System.out.println(venue.getPostal());
+					
 				}
 			
 			}
