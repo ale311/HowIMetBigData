@@ -46,7 +46,7 @@ public class JavaAPIExample{
 	}
 	public static void main(String[] args) throws IOException {
 		Date currentDate = new Date();
-		System.out.println( "Starting database ... " + currentDate.getHours()+":"+currentDate.getMinutes() );
+		System.out.println( "Starting database ... " + "TestNeo4j2Luglio "+currentDate.getHours()+":"+currentDate.getMinutes() );
 		FileUtils.deleteRecursively( new File( DB_PATH ) );
 		
 		//avvio istanza di musicmatch
@@ -54,6 +54,7 @@ public class JavaAPIExample{
 
 		HashSet<Track> insiemeTracce = new HashSet<Track>();
 		HashSet<String> insiemeArtisti = new HashSet<String>();
+		HashSet<Tag> insiemeTag = new HashSet<Tag>();
 		// START SNIPPET: startDb 
 		GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DB_PATH );
 
@@ -197,7 +198,31 @@ public class JavaAPIExample{
 					System.out.println(venue.getCountry());
 					
 				}
+			}
+			parameters.clear();
 			
+			//scorro la lista delle canzoni nel SET e aggiungo il collegamento
+			//ai tag associati. Limito il numero di tag a massimo 3
+			
+			for(Track t : insiemeTracce){
+				String nomeTraccia = t.getName();
+				String nomeArtista = t.getArtist();
+				//forse da aggiungere mbid per la traccia
+				Collection<Tag> tagAssociati = t.getTopTags(nomeArtista, nomeTraccia, apiKey);
+				Iterator<Tag> it = tagAssociati.iterator(); 
+				for(int i=0;i<3 && it.hasNext();i++){
+					Tag currentTag = it.next();
+					String currentTagToString = currentTag.getName();
+					//memorizzo in un SET i tag associati ad ogni canzone
+					insiemeTag.add(currentTag);
+					//creo relazione traccia-tag per ogni tag
+					queryString = "merge(t:Tag{Tag:{tag}})"+
+							"merge(c:Traccia{Traccia:{traccia}})"+
+							"merge(c)-[:HA_GENERE]-(t)";
+					parameters.put("traccia", nomeTraccia);
+					parameters.put("tag", currentTagToString);
+					resultIterator = graphDb.execute(queryString, parameters).columnAs("traccia ha genere tag");
+				}
 			}
 		
 		tx.success();
