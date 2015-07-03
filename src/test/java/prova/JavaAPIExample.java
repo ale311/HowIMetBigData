@@ -30,10 +30,12 @@ import org.neo4j.io.fs.FileUtils;
 import com.neovisionaries.i18n.CountryCode;
 
 import scala.annotation.meta.param;
+import de.umass.lastfm.Album;
 import de.umass.lastfm.Artist;
 import de.umass.lastfm.Event;
 import de.umass.lastfm.Geo;
 import de.umass.lastfm.PaginatedResult;
+import de.umass.lastfm.Period;
 import de.umass.lastfm.Tag;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.User;
@@ -130,24 +132,46 @@ public class JavaAPIExample{
 			parameters.clear();
 
 			//Accedo a lastfm per estrarre i max 200 ascolti dell'utente selezionato
-			PaginatedResult<Track> ascoltiDellUtenteDaLast = User.getRecentTracks(username, 1, 200, apiKey);
+//			PaginatedResult<Track> ascoltiDellUtenteDaLast = User.getRecentTracks(username, 1, 200, apiKey);
+//			Collection<Track> ascoltiDellUtenteDaLast = User.getTopTracks(username, apiKey);
+			Collection<Track> ascoltiDellUtenteDaLast = User.getTopTracks(username, Period.OVERALL, apiKey);
+//			System.out.println(ascoltiDellUtenteDaLast.size());
 			HashSet<Track> ascoltiDellUtente = new HashSet<Track>();
-			for(Track t : ascoltiDellUtenteDaLast){
-				ascoltiDellUtente.add(t);
-			}
+//			for(Track t : ascoltiDellUtenteDaLast){
+//				System.out.println(t.getAlbum());
+//				ascoltiDellUtente.add(t);
+//			}
 			for (Track tracciaCorrente : ascoltiDellUtenteDaLast){
 				//inserisco le tracce ascoltate nel mio SET
+				
 				insiemeTracce.add(tracciaCorrente);
-				//grafo: costruisco relazione tra utente e traccia
+				//grafo: costruisco relazione tra utente e traccia, e tra traccia e Album
 				String nomeTraccia = tracciaCorrente.getName();
+				String nomeArtista = tracciaCorrente.getArtist();
 				String mbid = tracciaCorrente.getMbid();
-				queryString = "merge(u:Utente{Utente:{username}})"+
-						"merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}})"+	
-						"merge(u)-[:ASCOLTA]-(t)";
-				parameters.put("username", username);
-				parameters.put("Traccia", nomeTraccia);
-				parameters.put("mbid",mbid);
-				resultIterator = graphDb.execute(queryString, parameters).columnAs("utente ascolta tracce");
+				int listeners= tracciaCorrente.getListeners();
+				
+//				String nomeAlbum = Track.getInfo(nomeArtista, nomeTraccia, apiKey).getAlbum();
+//				String albumMbid = Track.getInfo(nomeArtista, nomeTraccia, apiKey).getAlbumMbid();
+//				System.out.println(nomeAlbum+" "+albumMbid);
+//				String mbidAlbum = tracciaCorrente.getAlbumMbid();
+//				if(nomeAlbum!=null && mbidAlbum!=null){
+
+					queryString = "merge(u:Utente{Utente:{username}})"+
+							"merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}})"+	
+//							"merge(alb:Album{Album:{album}, mbidalbum:{mbidalbum}})"+
+							"merge(u)-[:ASCOLTA]-(t)";
+//							"merge(alb)-[:CONTIENE]-(t)";
+
+					
+					parameters.put("username", username);
+					parameters.put("Traccia", nomeTraccia);
+					parameters.put("mbid",mbid);
+//					parameters.put("listeners", listeners);
+//					parameters.put("album", nomeAlbum);
+//					parameters.put("mbidalbum", mbidAlbum);
+					resultIterator = graphDb.execute(queryString, parameters).columnAs("utente ascolta tracce");
+//				}
 			}
 			parameters.clear();
 
@@ -173,20 +197,26 @@ public class JavaAPIExample{
 
 			}
 			parameters.clear();
-
-			//scansiono la lista di tracce presenti nel mio SET
-			//assegno gli album alle tracce presenti nel SET
+//
+//			//scansiono la lista di tracce presenti nel mio SET
+//			//assegno gli album alle tracce presenti nel SET
 			for(Track tracciaCorrente : insiemeTracce){
 				String nomeTraccia = tracciaCorrente.getName();
 				String artistaTraccia = tracciaCorrente.getArtist();
-				String nomeAlbum = tracciaCorrente.getAlbum();
-				String mbidAlbum = tracciaCorrente.getAlbumMbid();
+//				String nomeAlbum = tracciaCorrente.getAlbum();
+//				String mbidAlbum = tracciaCorrente.getAlbumMbid();
+				
+				//devo ricostruire la traccia: non arriva all'album, altrimenti:problemi di last
+				
+				String nomeAlbum = Track.getInfo(artistaTraccia, nomeTraccia, apiKey).getAlbum();
+				String albumMbid = Track.getInfo(artistaTraccia, nomeTraccia, apiKey).getAlbumMbid();
 				
 				queryString = "merge(t:Traccia{Traccia:{Traccia}})"+
-								"merge(a:Album{Album:{Album}})"+
+								"merge(a:Album{Album:{Album}, mbid:{mbid}})"+
 								"merge(a)-[:CONTIENE]-(t)";
 				parameters.put("Traccia", nomeTraccia);
 				parameters.put("Album", nomeAlbum);
+				parameters.put("mbid", albumMbid);
 				resultIterator = graphDb.execute(queryString, parameters).columnAs("album contiene tracce");
 			}
 			
