@@ -22,7 +22,7 @@ public class ProvaJSON {
 			StringWriter writer = new StringWriter();
 			IOUtils.copy(response, writer, charset);
 			String theString = writer.toString();
-			System.out.println(theString);
+//			System.out.println(theString);
 
 			JSONParser parser = new JSONParser();
 			

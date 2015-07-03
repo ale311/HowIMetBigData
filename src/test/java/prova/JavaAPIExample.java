@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,9 +27,12 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.io.fs.FileUtils;
 
+import com.neovisionaries.i18n.CountryCode;
+
 import scala.annotation.meta.param;
 import de.umass.lastfm.Artist;
 import de.umass.lastfm.Event;
+import de.umass.lastfm.Geo;
 import de.umass.lastfm.PaginatedResult;
 import de.umass.lastfm.Tag;
 import de.umass.lastfm.Track;
@@ -37,7 +41,7 @@ import de.umass.lastfm.Venue;
 
 public class JavaAPIExample{
 
-	private static final String username = "ale_311";
+	private static final String username = "rj";
 	private static final String apiKey ="95f57bc8e14bd2eee7f1df8595291493";
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db";
 	private static final String musicKey = "c0e18db4aa3919ba5fd2399a747b2eb9";
@@ -109,8 +113,9 @@ public class JavaAPIExample{
 			String gender = user.getGender();
 			String c = user.getCountry();
 			int playcount = user.getPlaycount();
-			Locale countryLocale = new Locale ("", c);
-			String country = countryLocale.getDisplayCountry(Locale.ENGLISH);
+			CountryCode cc = CountryCode.getByCode(c);
+			String country = cc.getName();
+			System.out.println(country);
 			queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}, Playcount:{playcount}})"+
 						"merge(n:Nazione{Nazione:{Nazione}})"+
 						"merge(u)-[:VIVE_IN]-(n)";
@@ -125,8 +130,12 @@ public class JavaAPIExample{
 			parameters.clear();
 
 			//Accedo a lastfm per estrarre i max 200 ascolti dell'utente selezionato
-			PaginatedResult<Track> ascoltiDellUtente = User.getRecentTracks(username, 1, 200, apiKey);
-			for (Track tracciaCorrente : ascoltiDellUtente){
+			PaginatedResult<Track> ascoltiDellUtenteDaLast = User.getRecentTracks(username, 1, 200, apiKey);
+			HashSet<Track> ascoltiDellUtente = new HashSet<Track>();
+			for(Track t : ascoltiDellUtenteDaLast){
+				ascoltiDellUtente.add(t);
+			}
+			for (Track tracciaCorrente : ascoltiDellUtenteDaLast){
 				//inserisco le tracce ascoltate nel mio SET
 				insiemeTracce.add(tracciaCorrente);
 				//grafo: costruisco relazione tra utente e traccia
@@ -186,14 +195,23 @@ public class JavaAPIExample{
 			for(String a : insiemeArtisti){
 				PaginatedResult<Event> eventiDellArtista = Artist.getEvents(a, apiKey);
 				for(Event evento : eventiDellArtista){
+					String nomeEvento = evento.getTitle();
+					int attendant = evento.getAttendance();
+					Date date = evento.getStartDate();
 					//String description = evento.getDescription();
 					Venue venue = evento.getVenue();
 					String countryEvento = venue.getCountry();
 					queryString = "merge(c:Nazione{Nazione:{Nazione}})"+
 								"merge(a:Artista{Artista:{Artista}})"+
-								"merge(a)-[:PROGRAMMA_EVENTO]-(c)";
+								"merge(e:Evento{Evento:{evento}, Attendant:{attendant}, Date:{date}})"+
+								"merge(a)-[:PROGRAMMA_EVENTO]-(e)"+
+								"merge(e)-[:IN]-(c)";
+								
 					parameters.put("Nazione", countryEvento);
 					parameters.put("Artista", a);
+					parameters.put("evento", nomeEvento);
+					parameters.put("attendant", attendant);
+					parameters.put("date", date.toString());
 					resultIterator = graphDb.execute(queryString, parameters).columnAs("artista programma evento");
 					System.out.println(venue.getCountry());
 					
@@ -224,9 +242,35 @@ public class JavaAPIExample{
 					resultIterator = graphDb.execute(queryString, parameters).columnAs("traccia ha genere tag");
 				}
 			}
-		
+			
+			parameters.clear();
+			//esploro la collezione di eventi data una nazione
+			//ho la certezza che sono tutti futuri
+			//mi concentro solo su quelli che hanno un po' di attendent
+			PaginatedResult<Event> eventiTutti = Geo.getEvents(country, "0", 1, 300, apiKey);
+			for (Event evento : eventiTutti ){
+				Date dataEvento = evento.getStartDate();
+				int attendent = evento.getAttendance();
+				if (attendent>50){
+					System.out.println(evento.getAttendance());
+					String nomeEvento = evento.getTitle();
+					Collection<String> artistiNellEvento = evento.getArtists();
+					for (String artista : artistiNellEvento){
+						queryString = "merge(e:Evento{Evento:{evento},Attendent:{attendent}, Date:{date}})"+
+								"merge(a:Artista{Artista:{artista}})"+	
+								"merge(n:Nazione{Nazione:{nazione}})"+
+								"merge(a)-[:PROGRAMMA_EVENTO]-(e)" +
+								"merge(e)-[:IN]-(n)";
+						parameters.put("artista", artista);
+						parameters.put("nazione", country);
+						parameters.put("attendent", attendent);
+						parameters.put("evento", nomeEvento);
+						parameters.put("date", dataEvento.toString());
+						resultIterator = graphDb.execute(queryString, parameters).columnAs("artista programma evento nella nazione utente");
+					}
+				}
+			}
 		tx.success();
+		}
 	}
-
-}
 }
