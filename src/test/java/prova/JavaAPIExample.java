@@ -109,12 +109,12 @@ public class JavaAPIExample{
 
 			parameters.clear();
 			//Accedo a LASTFM per estrarre nazionalità dell'utente
-			User user = User.getInfo(username, apiKey);
-			String uname = user.getName();
-			int age = user.getAge();
-			String gender = user.getGender();
-			String c = user.getCountry();
-			int playcount = user.getPlaycount();
+			User userCorrente = User.getInfo(username, apiKey);
+			String uname = userCorrente.getName();
+			int age = userCorrente.getAge();
+			String gender = userCorrente.getGender();
+			String c = userCorrente.getCountry();
+			int playcount = userCorrente.getPlaycount();
 			CountryCode cc = CountryCode.getByCode(c);
 			String country = cc.getName();
 			System.out.println(country);
