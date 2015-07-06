@@ -167,13 +167,13 @@ public class Methods {
 		return ascoltiDellUtente;
 	}
 
-	public static HashSet<String> collegaTracceAiTag(GraphDatabaseService graphDb,
+	public static void collegaTracceAiTag(GraphDatabaseService graphDb,
 			ResourceIterator<Node> resultIterator, MusixMatch musixMatch,
-			HashSet<Track> insiemeTracce, String username, String apiKey) {
+			HashSet<Tag> insiemeTag, HashSet<Track> insiemeTracce, String username, String apiKey) {
 		String queryString;
 		Map<String,Object> parameters = new HashMap<String, Object>();
 		// TODO Auto-generated method stub
-		HashSet<String> insiemeTag = new HashSet<String>();
+//		HashSet<String> insiemeTag = new HashSet<String>();
 		for(Track t : insiemeTracce){
 			String trackName = t.getName();
 			String artistName = t.getArtist();
@@ -183,7 +183,7 @@ public class Methods {
 				Tag currentTag = it.next();
 				String currentTagToString = currentTag.getName();
 				//memorizzo in un SET i tag associati ad ogni canzone
-				insiemeTag.add(currentTagToString);
+				insiemeTag.add(currentTag);
 				//creo relazione traccia-tag per ogni tag
 				queryString = "merge(t:Tag{Tag:{tag}})"+
 						"merge(c:Traccia{Traccia:{traccia}})"+
@@ -194,6 +194,80 @@ public class Methods {
 			}
 			parameters.clear();
 		}
-		return insiemeTag;
+//		return insiemeTag;
+	}
+
+	public static void collegaTracceAdArtisti(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator, MusixMatch musixMatch,
+			HashSet<Track> insiemeTracce, HashSet<String> insiemeArtisti, String username, String apikey) {
+		// TODO Auto-generated method stub
+		String queryString;
+		Map<String,Object> parameters = new HashMap<String, Object>();
+		// TODO Auto-generated method stub
+		for (Track tracciaCorrente : insiemeTracce){
+			
+			String nomeTraccia = tracciaCorrente.getName();
+			String artistaTraccia = tracciaCorrente.getArtist();
+			//costruisco la collezione di Artisti
+			insiemeArtisti.add(tracciaCorrente.getArtist());
+			
+			String mbid = tracciaCorrente.getMbid();
+			//grafo: costruisco relazione tra artista e traccia che ha composto
+			queryString = "merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}}) "+ 
+					"merge(a:Artista{Artista:{Artista}})"+
+					"merge(a)-[:COMPONE]-(t)";
+			parameters.put("Traccia", nomeTraccia);
+			parameters.put("Artista", artistaTraccia);
+			parameters.put("mbid",mbid);
+			resultIterator = graphDb.execute(queryString, parameters).columnAs("artista compone tracce");
+
+		}
+		parameters.clear();
+	}
+
+	
+	//metodo che dato un tag, estrae le canzoni associate e le relaziona col tag
+	public static void estraiTopTrackDaTag(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator, MusixMatch musixMatch,
+			HashSet<Tag> insiemeTag, HashSet<Track> insiemeTracce,
+			HashSet<Integer> insiemeTrackID, String username, String apiKey) {
+		// TODO Auto-generated method stub
+		String queryString;
+//		HashSet<Track> insiemeTracce = new HashSet<Track>();
+		Map<String,Object> parameters = new HashMap<String, Object>();
+		for(Tag ct : insiemeTag){
+			//per ogni tag dell'insieme che ho passato al metodo
+			//estraggo la lista dei brani top associati a quel tag
+			String tag = ct.getName();
+			Collection<Track> collection = Tag.getTopTracks(tag, apiKey);
+			for (Track trackCorrente : collection){
+				//per ogni traccia della lista collegata al tag, ricevo le info e cerco l'id
+				//aggiorno gli insiemi
+				//metto tutto nel grafo
+				insiemeTracce.add(trackCorrente);
+				//grafo: costruisco relazione tra utente e traccia, e tra traccia e Album
+				String nomeTraccia = trackCorrente.getName();
+				String nomeArtista = trackCorrente.getArtist();
+				String mbid = trackCorrente.getMbid();
+				try {
+					//provo a ricevere l'entità di MXM della traccia
+					org.jmusixmatch.entity.track.Track track = musixMatch.getMatchingTrack(nomeTraccia, nomeArtista);
+					TrackData data = track.getTrack();
+					int mxid = data.getTrackId();
+					insiemeTrackID.add(mxid);
+					queryString = "merge(tag:Tag{Tag:{tag}})"+
+							"merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}, MusixMatchId:{mxid}})"+	
+							"merge(t)-[:HA_GENERE]-(tag)";
+					parameters.put("tag", tag);
+					parameters.put("Traccia", nomeTraccia);
+					parameters.put("mbid",mbid);
+					parameters.put("mxid", mxid);
+					resultIterator = graphDb.execute(queryString, parameters).columnAs("traccia ha genere tag");
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+//					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
