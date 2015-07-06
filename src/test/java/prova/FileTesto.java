@@ -9,6 +9,7 @@ import java.io.IOException;
 public class FileTesto {
 
 	public static void main(String[] args) throws IOException {
+		
 		String path = "/Users/FrappoMacBook/git/TestNeo4j2Luglio/util/html.txt";
 
 		try {

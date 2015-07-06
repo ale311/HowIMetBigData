@@ -10,6 +10,7 @@ public class Interrogazioni {
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db";
 
 	public static void main(String[] args) {
+		
 		GraphDatabaseService graphDb = new GraphDatabaseFactory()
 		.newEmbeddedDatabase(DB_PATH);
 		
