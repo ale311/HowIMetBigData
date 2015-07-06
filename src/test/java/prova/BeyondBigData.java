@@ -28,7 +28,7 @@ public class BeyondBigData {
 	private static final String username = "ale_311";
 	private static final String apiKey ="95f57bc8e14bd2eee7f1df8595291493";
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db";
-	private static final String mxapiKey = "c0e18db4aa3919ba5fd2399a747b2eb9";
+	private static final String mxapiKey = "d0c4241612e7a3373d2be60d6a886bda";
 	
 	
 	
@@ -44,6 +44,8 @@ public class BeyondBigData {
 		HashSet<String> insiemeArtisti = new HashSet<String>();
 		HashSet<Tag> insiemeTag = new HashSet<Tag>();
 		HashSet<String> insiemeUtenti = new HashSet<String>();
+		HashSet<Integer> insiemeTrackID = new HashSet<Integer>();
+		
 		// START SNIPPET: startDb 
 		GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DB_PATH );
 
@@ -59,28 +61,35 @@ public class BeyondBigData {
 			tx.success();
 		}
 		
-		try (Transaction tx = graphDb.beginTx()){
-			String queryString ="";
-			Map<String,Object> parameters = new HashMap<String, Object>();
-			insiemeUtenti = (HashSet<String>) Methods.restituisciUtenti(username, apiKey);
-			for(String userCorrente : insiemeUtenti){
-				System.out.println(userCorrente);
-				System.out.println(insiemeUtenti.size());
-				Methods.aggiungiUtentiNelGrafo(graphDb, resultIterator, userCorrente, apiKey);
-				Methods.collegaUtentiAdUtentePrincipale (graphDb, resultIterator ,username, userCorrente, apiKey);
-			}
-			tx.success();
-		}
+		//DA DECOMMENTARE!
+		
+//		try (Transaction tx = graphDb.beginTx()){
+//			String queryString ="";
+//			Map<String,Object> parameters = new HashMap<String, Object>();
+//			insiemeUtenti = (HashSet<String>) Methods.restituisciUtenti(username, apiKey);
+//			for(String userCorrente : insiemeUtenti){
+////				System.out.println(userCorrente);
+////				System.out.println(insiemeUtenti.size());
+//				Methods.aggiungiUtentiNelGrafo(graphDb, resultIterator, userCorrente, apiKey);
+//				Methods.collegaUtentiAdUtentePrincipale (graphDb, resultIterator ,username, userCorrente, apiKey);
+//			}
+//			tx.success();
+//		}
 		
 		//aggiungo tracce preferite dall'utente principale
 		
 		try (Transaction tx = graphDb.beginTx()){
 			String queryString ="";
 			Map<String,Object> parameters = new HashMap<String, Object>();
-			Methods.collegaUtenteATracce(graphDb,resultIterator,musixMatch,username,apiKey);
-			tx.success();
+			try {
+				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTracce, insiemeTrackID, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
 		}
-		
+//		System.out.println(insiemeTrackID.size());
 		//aggiungo le tracce dei simili ai simili
 //		try (Transaction tx = graphDb.beginTx()){
 //			String queryString ="";
@@ -91,23 +100,37 @@ public class BeyondBigData {
 //			}
 //			tx.success();
 //		}
+////		
+//		int j = 0;
+//		for(String userCorrente : insiemeUtenti){
+//			
+//			System.out.println("collego tracce a utente "+userCorrente+ " " + j++);
+//			try (Transaction tx = graphDb.beginTx()){
+//				try {
+//					Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, userCorrente, apiKey);
+//				} catch (Exception e) {
+//					// TODO: handle exception
+//				} finally {
+//					tx.success();
+//				}
+//			}
+//		}
 //		
-		int j = 0;
-		for(String userCorrente : insiemeUtenti){
-			
-			System.out.println("collego tracce a utente "+userCorrente+ " " + j++);
-			try (Transaction tx = graphDb.beginTx()){
-				try {
-					Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, userCorrente, apiKey);
-				} catch (Exception e) {
-					// TODO: handle exception
-				} finally {
-					tx.success();
-				}
+//		
+		System.out.println(insiemeTracce.size());
+		//aggiungo tag corrispondenti alle tracce che ho nel mio insieme: 
+		//passo l'insieme delle trackid e chiedo a mx di restituirmi un tag (Speriamo sia più preciso di last)
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch, insiemeTracce, username, apiKey);
+//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
 			}
 		}
-//		
-//		
-		
 	}
 }

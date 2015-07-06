@@ -3,6 +3,7 @@ package prova;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ import com.neovisionaries.i18n.CountryCode;
 
 import de.umass.lastfm.PaginatedResult;
 import de.umass.lastfm.Period;
+import de.umass.lastfm.Tag;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.User;
 
@@ -113,11 +115,11 @@ public class Methods {
 
 	}
 
-	public static HashSet<Track>  collegaUtenteATracce(GraphDatabaseService graphDb,
-			ResourceIterator<Node> resultIterator, MusixMatch musixMatch, String username,
+	public static HashSet<Track> collegaUtenteATracce(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator, MusixMatch musixMatch,  HashSet<Track> insiemeTracce, HashSet<Integer> insiemeTrackID, String username,
 			String apiKey) throws MusixMatchException {
 		String queryString;
-		HashSet<Track> insiemeTracce = new HashSet<Track>();
+//		HashSet<Track> insiemeTracce = new HashSet<Track>();
 		Map<String,Object> parameters = new HashMap<String, Object>();
 		// TODO Auto-generated method stub
 		PaginatedResult<Track> ascoltiRecentiDaLast = User.getRecentTracks(username, 1, 200, apiKey);
@@ -131,18 +133,23 @@ public class Methods {
 		}
 		for (Track tracciaCorrente : ascoltiDellUtente){
 			//inserisco le tracce ascoltate nel mio SET
-			
-//			insiemeTracce.add(tracciaCorrente);
+			insiemeTracce.add(tracciaCorrente);
 			//grafo: costruisco relazione tra utente e traccia, e tra traccia e Album
 			String nomeTraccia = tracciaCorrente.getName();
 			String nomeArtista = tracciaCorrente.getArtist();
 			String mbid = tracciaCorrente.getMbid();
 			int listeners= tracciaCorrente.getListeners();
-			
+			System.out.println(nomeArtista + " "+ nomeTraccia+ " "+ mbid);
 			try {
+				//provo a ricevere l'entità di MXM della traccia
+				System.out.println("provo a ricevere id mxm");
 				org.jmusixmatch.entity.track.Track track = musixMatch.getMatchingTrack(nomeTraccia, nomeArtista);
 				TrackData data = track.getTrack();
 				int mxid = data.getTrackId();
+				System.out.println(mxid);
+				System.out.println("aggiungo la traccia: "+mxid+" all'utente "+username);
+				//aggiorno la struttura dati che memorizza i trackID
+				insiemeTrackID.add(mxid);
 				queryString = "merge(u:Utente{Utente:{username}})"+
 						"merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}, MusixMatchId:{mxid}})"+	
 						"merge(u)-[:ASCOLTA]-(t)";
@@ -158,5 +165,35 @@ public class Methods {
 		}
 		parameters.clear();
 		return ascoltiDellUtente;
+	}
+
+	public static HashSet<String> collegaTracceAiTag(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator, MusixMatch musixMatch,
+			HashSet<Track> insiemeTracce, String username, String apiKey) {
+		String queryString;
+		Map<String,Object> parameters = new HashMap<String, Object>();
+		// TODO Auto-generated method stub
+		HashSet<String> insiemeTag = new HashSet<String>();
+		for(Track t : insiemeTracce){
+			String trackName = t.getName();
+			String artistName = t.getArtist();
+			Collection<Tag> tagAssociati = t.getTopTags(artistName, trackName, apiKey);
+			Iterator<Tag> it = tagAssociati.iterator(); 
+			for(int i=0;i<1 && it.hasNext();i++){
+				Tag currentTag = it.next();
+				String currentTagToString = currentTag.getName();
+				//memorizzo in un SET i tag associati ad ogni canzone
+				insiemeTag.add(currentTagToString);
+				//creo relazione traccia-tag per ogni tag
+				queryString = "merge(t:Tag{Tag:{tag}})"+
+						"merge(c:Traccia{Traccia:{traccia}})"+
+						"merge(c)-[:HA_GENERE]-(t)";
+				parameters.put("traccia", trackName);
+				parameters.put("tag", currentTagToString);
+				resultIterator = graphDb.execute(queryString, parameters).columnAs("traccia ha genere tag");
+			}
+			parameters.clear();
+		}
+		return insiemeTag;
 	}
 }
