@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.tools.Tool;
+
 import org.jmusixmatch.MusixMatch;
 import org.jmusixmatch.MusixMatchException;
 import org.neo4j.graphdb.DynamicLabel;
@@ -93,6 +95,8 @@ public class BeyondBigData {
 				tx.success();
 			}
 		}
+
+	//TODO verificare utilità di questo metodo, non dovrebbe essere più utile
 //		System.out.println(insiemeTrackID.size());
 		//aggiungo le tracce dei simili ai simili
 //		try (Transaction tx = graphDb.beginTx()){
@@ -105,22 +109,22 @@ public class BeyondBigData {
 //			tx.success();
 //		}
 ////		
-//		int j = 0;
-//		for(String userCorrente : insiemeUtenti){
-//			
-//			System.out.println("collego tracce a utente "+userCorrente+ " " + j++);
-//			try (Transaction tx = graphDb.beginTx()){
-//				try {
-//					Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, userCorrente, apiKey);
-//				} catch (Exception e) {
-//					// TODO: handle exception
-//				} finally {
-//					tx.success();
-//				}
-//			}
-//		}
-//		
-//		
+		int j = 0;
+		for(String userCorrente : insiemeUtenti){
+			
+			System.out.println("collego tracce a utente "+userCorrente+ " " + j++);
+			try (Transaction tx = graphDb.beginTx()){
+				try {
+					Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch,insiemeTracce, insiemeTrackID, userCorrente, apiKey);
+				} catch (Exception e) {
+					// TODO: handle exception
+				} finally {
+					tx.success();
+				}
+			}
+		}
+		
+		
 		System.out.println(insiemeTracce.size());
 		
 		
@@ -128,34 +132,34 @@ public class BeyondBigData {
 		
 		//aggiungo TAG corrispondenti alle tracce che ho nel mio insieme: 
 		//passo l'insieme delle trackid e chiedo a mx di restituirmi un tag (Speriamo sia più preciso di last)
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-//			try {
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
+//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
+		}
+		
+		//estraggo topTrack dei GENERI (TAG)
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.estraiTopTrackDaTag(graphDb, resultIterator,musixMatch, insiemeTag, insiemeTracce, insiemeTrackID, username, apiKey);
 //				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
-////				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			} finally {
-//				tx.success();
-//			}
-//		}
-//		
-//		//estraggo topTrack dei GENERI (TAG)
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-//			try {
-//				Methods.estraiTopTrackDaTag(graphDb, resultIterator,musixMatch, insiemeTag, insiemeTracce, insiemeTrackID, username, apiKey);
-////				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
-////				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			} finally {
-//				tx.success();
-//			}
-//		}
-//		
+//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
+		}
+		
 		//aggiungo artisti nel mio insieme e li collego alle tracce
 		try (Transaction tx = graphDb.beginTx()){
 			String queryString ="";
