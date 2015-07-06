@@ -1,16 +1,25 @@
 package prova;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.management.MXBean;
+
+import org.jmusixmatch.MusixMatch;
+import org.jmusixmatch.MusixMatchException;
+import org.jmusixmatch.entity.track.TrackData;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 
 import com.neovisionaries.i18n.CountryCode;
 
+import de.umass.lastfm.PaginatedResult;
+import de.umass.lastfm.Period;
+import de.umass.lastfm.Track;
 import de.umass.lastfm.User;
 
 public class Methods {
@@ -67,11 +76,11 @@ public class Methods {
 			//fine creazione nodi country
 
 			parameters.clear();
-			return "CIAONE";
+			return "test ELSE";
 		} catch (Exception e) {
 			// TODO: handle exception
 //			e.printStackTrace();
-			return "kitemmuort";
+			return "test CATCH";
 		}	
 	}
 
@@ -92,21 +101,62 @@ public class Methods {
 			ResourceIterator<Node> resultIterator, String username,
 			String userCorrente, String apikey) {
 		// TODO Auto-generated method stub
-		
+
 		String queryString = "";
 		Map<String,Object> parameters = new HashMap<String, Object>();
 		queryString = "merge(u1:Utente{Utente:{username}})"+
 				"merge(u2:Utente{Utente:{vicino}})"+
-				"merge(u1)-[:AMICO]-(u2)";
+				"merge(u1)-[:SIMILE]-(u2)";
 		parameters.put("username", username);
 		parameters.put("vicino", userCorrente);
 		resultIterator = graphDb.execute(queryString, parameters).columnAs("utente e suoi amici");
 
 	}
 
-	
-	
-	
-
-
+	public static HashSet<Track>  collegaUtenteATracce(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator, MusixMatch musixMatch, String username,
+			String apiKey) throws MusixMatchException {
+		String queryString;
+		HashSet<Track> insiemeTracce = new HashSet<Track>();
+		Map<String,Object> parameters = new HashMap<String, Object>();
+		// TODO Auto-generated method stub
+		PaginatedResult<Track> ascoltiRecentiDaLast = User.getRecentTracks(username, 1, 200, apiKey);
+		Collection<Track> ascoltiTopDaLast = User.getTopTracks(username, apiKey);
+		HashSet<Track> ascoltiDellUtente = new HashSet<Track>();
+		for(Track t : ascoltiRecentiDaLast){
+			ascoltiDellUtente.add(t);
+		}
+		for(Track t : ascoltiTopDaLast){
+			ascoltiDellUtente.add(t);
+		}
+		for (Track tracciaCorrente : ascoltiDellUtente){
+			//inserisco le tracce ascoltate nel mio SET
+			
+//			insiemeTracce.add(tracciaCorrente);
+			//grafo: costruisco relazione tra utente e traccia, e tra traccia e Album
+			String nomeTraccia = tracciaCorrente.getName();
+			String nomeArtista = tracciaCorrente.getArtist();
+			String mbid = tracciaCorrente.getMbid();
+			int listeners= tracciaCorrente.getListeners();
+			
+			try {
+				org.jmusixmatch.entity.track.Track track = musixMatch.getMatchingTrack(nomeTraccia, nomeArtista);
+				TrackData data = track.getTrack();
+				int mxid = data.getTrackId();
+				queryString = "merge(u:Utente{Utente:{username}})"+
+						"merge(t:Traccia{Traccia:{Traccia}, MBId:{mbid}, MusixMatchId:{mxid}})"+	
+						"merge(u)-[:ASCOLTA]-(t)";
+				parameters.put("username", username);
+				parameters.put("Traccia", nomeTraccia);
+				parameters.put("mbid",mbid);
+				parameters.put("mxid", mxid);
+				resultIterator = graphDb.execute(queryString, parameters).columnAs("utente ascolta tracce");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+//				e.printStackTrace();
+			}
+		}
+		parameters.clear();
+		return ascoltiDellUtente;
+	}
 }
