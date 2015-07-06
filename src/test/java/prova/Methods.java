@@ -1,6 +1,7 @@
 package prova;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,17 +19,21 @@ import org.neo4j.graphdb.ResourceIterator;
 
 import com.neovisionaries.i18n.CountryCode;
 
+import de.umass.lastfm.Artist;
+import de.umass.lastfm.Event;
+import de.umass.lastfm.Geo;
 import de.umass.lastfm.PaginatedResult;
 import de.umass.lastfm.Period;
 import de.umass.lastfm.Tag;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.User;
+import de.umass.lastfm.Venue;
 
 public class Methods {
 	//metodo che estrae utente e sue info, crea nodo e associa a nazione
 	//inoltre, restituisce la stringa NAZIONE per futuri usi, senza necessità di esplorare il grafo
 
-	public static String aggiungiUtentiNelGrafo(GraphDatabaseService graphDb, ResourceIterator<Node> resultIterator, String username, String apiKey)  {
+	public static String aggiungiUtentiNelGrafo(GraphDatabaseService graphDb, ResourceIterator<Node> resultIterator, HashSet<String> countries, String username, String apiKey)  {
 		//Accedo a LASTFM per estrarre nazionalità dell'utente
 		User userCorrente = User.getInfo(username, apiKey);
 		Map<String,Object> parameters = new HashMap<String, Object>();
@@ -49,6 +54,7 @@ public class Methods {
 				//			String country = "CIAONE";
 				country = cc.getName();
 				System.out.println(country);
+				countries.add(country);
 				String queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}, Playcount:{playcount}})"+
 						"merge(n:Nazione{Nazione:{Nazione}})"+
 						"merge(u)-[:VIVE_IN]-(n)";
@@ -267,6 +273,76 @@ public class Methods {
 					// TODO Auto-generated catch block
 //					e.printStackTrace();
 				}
+			}
+		}
+	}
+
+	public static void estraiEventiDaNazioni(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator, HashSet<String> countries,
+			String username, String apiKey) {
+		// TODO Auto-generated method stub
+		String queryString;
+//		HashSet<Track> insiemeTracce = new HashSet<Track>();
+		Map<String,Object> parameters = new HashMap<String, Object>();
+		for(String country : countries){
+			
+		PaginatedResult<Event> eventiDiNazione = Geo.getEvents(country, "0", 1, 300, apiKey);
+		for (Event evento : eventiDiNazione ){
+			Date dataEvento = evento.getStartDate();
+			int attendent = evento.getAttendance();
+			if (attendent>50){
+				System.out.println(evento.getAttendance());
+				String nomeEvento = evento.getTitle();
+				Collection<String> artistiNellEvento = evento.getArtists();
+				for (String artista : artistiNellEvento){
+					queryString = "merge(e:Evento{Evento:{evento},Attendent:{attendent}, Date:{date}})"+
+							"merge(a:Artista{Artista:{artista}})"+	
+							"merge(n:Nazione{Nazione:{nazione}})"+
+							"merge(a)-[:PROGRAMMA_EVENTO]-(e)" +
+							"merge(e)-[:IN]-(n)";
+					parameters.put("artista", artista);
+					parameters.put("nazione", country);
+					parameters.put("attendent", attendent);
+					parameters.put("evento", nomeEvento);
+					parameters.put("date", dataEvento.toString());
+					resultIterator = graphDb.execute(queryString, parameters).columnAs("artista programma evento nella nazione utente");
+				}
+			}
+		}
+		}
+	}
+
+	public static void estraiEventiDaArtisti(GraphDatabaseService graphDb,
+			ResourceIterator<Node> resultIterator,
+			HashSet<String> insiemeArtisti, String username, String apiKey) {
+		// TODO Auto-generated method stub
+		String queryString;
+//		HashSet<Track> insiemeTracce = new HashSet<Track>();
+		Map<String,Object> parameters = new HashMap<String, Object>();
+		for(String artista : insiemeArtisti){
+			
+			PaginatedResult<Event> eventiDiArtista = Artist.getEvents(artista, apiKey);
+			for(Event evento : eventiDiArtista){
+				String nomeEvento = evento.getTitle();
+				int attendant = evento.getAttendance();
+				Date date = evento.getStartDate();
+				//String description = evento.getDescription();
+				Venue venue = evento.getVenue();
+				String countryEvento = venue.getCountry();
+				queryString = "merge(c:Nazione{Nazione:{Nazione}})"+
+						"merge(a:Artista{Artista:{Artista}})"+
+						"merge(e:Evento{Evento:{evento}, Attendant:{attendant}, Date:{date}})"+
+						"merge(a)-[:PROGRAMMA_EVENTO]-(e)"+
+						"merge(e)-[:IN]-(c)";
+
+				parameters.put("Nazione", countryEvento);
+				parameters.put("Artista", artista);
+				parameters.put("evento", nomeEvento);
+				parameters.put("attendant", attendant);
+				parameters.put("date", date.toString());
+				resultIterator = graphDb.execute(queryString, parameters).columnAs("artista programma evento");
+				System.out.println(venue.getCountry());
+
 			}
 		}
 	}
