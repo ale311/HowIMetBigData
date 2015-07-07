@@ -1,19 +1,30 @@
 package prova;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.helpers.collection.IteratorUtil;
+
+import scala.Array;
 
 public class Interrogazioni {
 
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db";
 
 	public static void main(String[] args) {
-		
+
 		GraphDatabaseService graphDb = new GraphDatabaseFactory()
-		.newEmbeddedDatabase(DB_PATH);
-		
+				.newEmbeddedDatabase(DB_PATH);
+
 		String utente = "rj";
 		String traccia = "Steamroller";
 		String album = "Unelectric";
@@ -24,34 +35,34 @@ public class Interrogazioni {
 
 		Interrogazioni get = new Interrogazioni();
 
-		 get.getAll(graphDb);
-		 get.getUtenti(graphDb);
-		 get.getTracce(graphDb);
-		 get.getAlbums(graphDb);
-		 get.getEventi(graphDb);
-		 get.getTags(graphDb);
-		 get.getNazioni(graphDb);
-		 get.getArtisti(graphDb);
-		
-		 get.getUtente(graphDb, utente);
-		 get.getTraccia(graphDb, traccia);
-		 get.getAlbum(graphDb, album);
-		 get.getEvento(graphDb, evento);
-		 get.getTag(graphDb, tag);
-		 get.getNazione(graphDb, nazione);
-		 get.getArtista(graphDb, artista);
-				
-		 get.countAll(graphDb);
-		 get.countUtenti(graphDb);
-		 get.countTracce(graphDb);
-		 get.countAlbums(graphDb);
-		 get.countEventi(graphDb);
-		 get.countTags(graphDb);
-		 get.countNazioni(graphDb);
-		 get.countArtisti(graphDb);
-		 
-		 get.getUserTracks(graphDb, utente);
-
+		// get.getAll(graphDb);
+		// get.getUtenti(graphDb);
+		get.getTracce(graphDb);
+		// get.getAlbums(graphDb);
+		// get.getEventi(graphDb);
+		// get.getTags(graphDb);
+		// get.getNazioni(graphDb);
+		// get.getArtisti(graphDb);
+		//
+		// get.getUtente(graphDb, utente);
+		// get.getTraccia(graphDb, traccia);
+		// get.getAlbum(graphDb, album);
+		// get.getEvento(graphDb, evento);
+		// get.getTag(graphDb, tag);
+		// get.getNazione(graphDb, nazione);
+		// get.getArtista(graphDb, artista);
+		//
+		// get.countAll(graphDb);
+		// get.countUtenti(graphDb);
+		// get.countTracce(graphDb);
+		// get.countAlbums(graphDb);
+		// get.countEventi(graphDb);
+		// get.countTags(graphDb);
+		// get.countNazioni(graphDb);
+		// get.countArtisti(graphDb);
+		//
+		// get.getUserTracks(graphDb, utente);
+		//
 
 	}
 
@@ -73,15 +84,23 @@ public class Interrogazioni {
 		System.out.println("GET UTENTI OK");
 	}
 
-	public void getTracce(GraphDatabaseService graphDb) {
+	public List<String> getTracce(GraphDatabaseService graphDb) {
 		ExecutionEngine execEngine = new ExecutionEngine(graphDb);
 		ExecutionResult execResult = execEngine
-				.execute("MATCH(n:Traccia) RETURN n");
-		String results = execResult.dumpToString();
-		System.out.println(results);
+				.execute("MATCH(n:Traccia) RETURN n.MusixMatchId");
 
-		System.out.println("GET TRACCE OK");
+		ResourceIterator<Map<String, Object>> tracce = execResult.iterator();
 
+		List<String> ids = new ArrayList<String>();
+		for (Map<String, Object> node : IteratorUtil.asIterable(tracce)) {
+			Collection<Object> values = node.values();
+			for (Object v : values) {
+				if (v != null) {
+					ids.add(v.toString());
+				}
+			}
+		}
+		return ids;
 	}
 
 	public void getAlbums(GraphDatabaseService graphDb) {
@@ -165,7 +184,8 @@ public class Interrogazioni {
 	public void getAlbum(GraphDatabaseService graphDb, String album) {
 		ExecutionEngine execEngine = new ExecutionEngine(graphDb);
 		ExecutionResult execResult = execEngine
-				.execute("MATCH(n:Album) WHERE n.Album='" + album + "' RETURN n");
+				.execute("MATCH(n:Album) WHERE n.Album='" + album
+						+ "' RETURN n");
 		String results = execResult.dumpToString();
 		System.out.println(results);
 
@@ -222,7 +242,8 @@ public class Interrogazioni {
 
 	public void countAll(GraphDatabaseService graphDb) {
 		ExecutionEngine execEngine = new ExecutionEngine(graphDb);
-		ExecutionResult execResult = execEngine.execute("MATCH(n) RETURN count(n)");
+		ExecutionResult execResult = execEngine
+				.execute("MATCH(n) RETURN count(n)");
 		String results = execResult.dumpToString();
 		System.out.println(results);
 
@@ -287,7 +308,8 @@ public class Interrogazioni {
 
 	public void countTags(GraphDatabaseService graphDb) {
 		ExecutionEngine execEngine = new ExecutionEngine(graphDb);
-		ExecutionResult execResult = execEngine.execute("MATCH(n:Tag) RETURN count(n)");
+		ExecutionResult execResult = execEngine
+				.execute("MATCH(n:Tag) RETURN count(n)");
 		String results = execResult.dumpToString();
 		System.out.println(results);
 
