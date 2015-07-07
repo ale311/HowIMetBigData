@@ -41,6 +41,11 @@ public class FileTesto {
 			BufferedWriter b = new BufferedWriter(w);
 			for (String id : ids) {
 				String result = jedis.get(id);
+				result = result.replace('\"', ' ');
+				result = result.replace('?', ' ');
+				result = result.replace('-', ' ');
+				result = result.replace('*', ' ');
+				result = result.replace('!', ' ');
 				result = result.replace(',', ' ');
 				result = result.replace('(', ' ');
 				result = result.replace(')', ' ');
@@ -72,6 +77,11 @@ public class FileTesto {
 			BufferedWriter b = new BufferedWriter(w);
 			for (String id : ids) {
 				String result = jedis.get(id);
+				result = result.replace('\"', ' ');
+				result = result.replace('?', ' ');
+				result = result.replace('-', ' ');
+				result = result.replace('*', ' ');
+				result = result.replace('!', ' ');
 				result = result.replace(',', ' ');
 				result = result.replace('(', ' ');
 				result = result.replace(')', ' ');
