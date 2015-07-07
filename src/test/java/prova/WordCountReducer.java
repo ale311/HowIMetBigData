@@ -19,5 +19,6 @@ public class WordCountReducer extends
 		}
 
 		context.write(key, new IntWritable(sum));
+
 	}
 }

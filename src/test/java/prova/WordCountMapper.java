@@ -25,7 +25,6 @@ public class WordCountMapper extends
 			word.set(tokenizer.nextToken());
 			context.write(word, one);
 		}
-
 	}
 
 }

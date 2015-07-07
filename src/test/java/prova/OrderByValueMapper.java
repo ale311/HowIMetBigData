@@ -18,7 +18,6 @@ public class OrderByValueMapper extends
 			throws IOException, InterruptedException {
 		
 		String line = value.toString();
-
 		StringTokenizer tokenizer = new StringTokenizer(line);
 		
 		product.set(tokenizer.nextToken());

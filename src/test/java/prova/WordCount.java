@@ -40,5 +40,6 @@ public class WordCount {
 		if (job1.waitForCompletion(true)) {
 			job2.waitForCompletion(true);
 		}
+		
 	}
 }

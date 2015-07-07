@@ -15,7 +15,6 @@ public class OrderByValueReducer extends
 		for (Text value : values) {
 			context.write(value, key);
 		}
-
 	}
 
 }
