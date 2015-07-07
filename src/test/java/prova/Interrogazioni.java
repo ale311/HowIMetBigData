@@ -25,11 +25,11 @@ public class Interrogazioni {
 		GraphDatabaseService graphDb = new GraphDatabaseFactory()
 				.newEmbeddedDatabase(DB_PATH);
 
-		String utente = "rj";
+		String utente = "ale_311";
 		String traccia = "Steamroller";
 		String album = "Unelectric";
 		String evento = "Brian Wilson";
-		String tag = "dub";
+		String tag = "rock";
 		String nazione = "France";
 		String artista = "Rodriguez";
 
@@ -37,7 +37,7 @@ public class Interrogazioni {
 
 		// get.getAll(graphDb);
 		// get.getUtenti(graphDb);
-		get.getTracce(graphDb);
+//		get.getTracce(graphDb);
 		// get.getAlbums(graphDb);
 		// get.getEventi(graphDb);
 		// get.getTags(graphDb);
@@ -61,7 +61,8 @@ public class Interrogazioni {
 		// get.countNazioni(graphDb);
 		// get.countArtisti(graphDb);
 		//
-		// get.getUserTracks(graphDb, utente);
+//		 get.getUserTracks(graphDb, utente);
+		 get.getTagTracks(graphDb, tag);
 		//
 
 	}
@@ -328,15 +329,47 @@ public class Interrogazioni {
 
 	}
 
-	public void getUserTracks(GraphDatabaseService graphDb, String utente) {
+	public List<String> getUserTracks(GraphDatabaseService graphDb, String utente) {
 		ExecutionEngine execEngine = new ExecutionEngine(graphDb);
 		ExecutionResult execResult = execEngine
 				.execute("MATCH (n:Traccia)<-[r]-(u:Utente {Utente:'" + utente
-						+ "'}) RETURN n");
-		String results = execResult.dumpToString();
-		System.out.println(results);
+						+ "'}) RETURN n.MusixMatchId");
 
-		System.out.println("GET USER-TRACKS OK");
+		ResourceIterator<Map<String, Object>> tracce = execResult.iterator();
+
+		List<String> ids = new ArrayList<String>();
+		for (Map<String, Object> node : IteratorUtil.asIterable(tracce)) {
+			Collection<Object> values = node.values();
+			for (Object v : values) {
+				if (v != null) {
+					ids.add(v.toString());
+					System.out.println(v.toString());
+				}
+			}
+		}
+		return ids;
+
+	}
+	
+	public List<String> getTagTracks(GraphDatabaseService graphDb, String tag) {
+		ExecutionEngine execEngine = new ExecutionEngine(graphDb);
+		ExecutionResult execResult = execEngine
+				.execute("MATCH (n:Traccia)-[r]->(u:Tag {Tag:'" + tag
+						+ "'}) RETURN n.MusixMatchId");
+
+		ResourceIterator<Map<String, Object>> tracce = execResult.iterator();
+
+		List<String> ids = new ArrayList<String>();
+		for (Map<String, Object> node : IteratorUtil.asIterable(tracce)) {
+			Collection<Object> values = node.values();
+			for (Object v : values) {
+				if (v != null) {
+					ids.add(v.toString());
+					System.out.println(v.toString());
+				}
+			}
+		}
+		return ids;
 
 	}
 }
