@@ -55,7 +55,7 @@ public class Methods {
 				country = cc.getName();
 				System.out.println(country);
 				countries.add(country);
-				String queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}, Playcount:{playcount}})"+
+				String queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}})"+
 						"merge(n:Nazione{Nazione:{Nazione}})"+
 						"merge(u)-[:VIVE_IN]-(n)";
 				parameters.put("username", username);
@@ -73,7 +73,7 @@ public class Methods {
 
 			//ramo else: l'utente non ha informazioni condivise quindi non le metto
 			else{
-				String queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}, Playcount:{playcount}})";
+				String queryString = "merge(u:Utente{Utente:{username}, Age:{age}, Gender:{gender}})";
 				parameters.put("username", username);
 				parameters.put("age", age);
 				parameters.put("gender", gender);
@@ -96,7 +96,8 @@ public class Methods {
 	//in questa versione, restituisco solo i simili (1 SOLO SALTO, dal seme ai VICINI)
 	public static Set<String> restituisciUtenti (String username, String apiKey){
 		HashSet<String> result = new HashSet<String>();
-		for(User u : User.getNeighbours(username, apiKey)){
+//		for(User u : User.getNeighbours(username, apiKey)){
+		for(User u : User.getNeighbours(username, 200, apiKey)){
 			result.add(u.getName());
 			//					System.out.println(u.getName());
 		}
@@ -128,7 +129,7 @@ public class Methods {
 //		HashSet<Track> insiemeTracce = new HashSet<Track>();
 		Map<String,Object> parameters = new HashMap<String, Object>();
 		// TODO Auto-generated method stub
-		PaginatedResult<Track> ascoltiRecentiDaLast = User.getRecentTracks(username, 1, 200, apiKey);
+		PaginatedResult<Track> ascoltiRecentiDaLast = User.getRecentTracks(username, 14, 200, apiKey);
 		Collection<Track> ascoltiTopDaLast = User.getTopTracks(username, apiKey);
 		HashSet<Track> ascoltiDellUtente = new HashSet<Track>();
 		for(Track t : ascoltiRecentiDaLast){

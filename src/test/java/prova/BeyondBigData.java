@@ -30,14 +30,14 @@ public class BeyondBigData {
 	private static final String username = "ale_311";
 	private static final String apiKey ="95f57bc8e14bd2eee7f1df8595291493";
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db";
-	private static final String mxapiKey = "d0c4241612e7a3373d2be60d6a886bda";
+	private static final String mxapiKey = "0e3853cf86f57edab7403de18429288b";
 	
 	
 	
 	public static void main (String [] args) throws IOException, MusixMatchException{
 		Date currentDate = new Date();
 		System.out.println( "Starting database " + "Beyond Big Data "+currentDate.getHours()+":"+currentDate.getMinutes() );
-		FileUtils.deleteRecursively( new File( DB_PATH ) );
+//		FileUtils.deleteRecursively( new File( DB_PATH ) );
 
 		//avvio istanza di musicmatch
 		MusixMatch musixMatch = new MusixMatch(mxapiKey);
@@ -127,39 +127,39 @@ public class BeyondBigData {
 		
 		System.out.println(insiemeTracce.size());
 		
-		
-		
-		
+//		
+//		
+//		
 		//aggiungo TAG corrispondenti alle tracce che ho nel mio insieme: 
 		//passo l'insieme delle trackid e chiedo a mx di restituirmi un tag (Speriamo sia più preciso di last)
-		try (Transaction tx = graphDb.beginTx()){
-			String queryString ="";
-			Map<String,Object> parameters = new HashMap<String, Object>();
-			try {
-				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
-//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
-			} catch (Exception e) {
-				// TODO: handle exception
-			} finally {
-				tx.success();
-			}
-		}
-		
-		//estraggo topTrack dei GENERI (TAG)
-		try (Transaction tx = graphDb.beginTx()){
-			String queryString ="";
-			Map<String,Object> parameters = new HashMap<String, Object>();
-			try {
-				Methods.estraiTopTrackDaTag(graphDb, resultIterator,musixMatch, insiemeTag, insiemeTracce, insiemeTrackID, username, apiKey);
+//		try (Transaction tx = graphDb.beginTx()){
+//			String queryString ="";
+//			Map<String,Object> parameters = new HashMap<String, Object>();
+//			try {
 //				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
-//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
-			} catch (Exception e) {
-				// TODO: handle exception
-			} finally {
-				tx.success();
-			}
-		}
-		
+////				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+//			} catch (Exception e) {
+//				// TODO: handle exception
+//			} finally {
+//				tx.success();
+//			}
+//		}
+//		
+//		//estraggo topTrack dei GENERI (TAG)
+//		try (Transaction tx = graphDb.beginTx()){
+//			String queryString ="";
+//			Map<String,Object> parameters = new HashMap<String, Object>();
+//			try {
+//				Methods.estraiTopTrackDaTag(graphDb, resultIterator,musixMatch, insiemeTag, insiemeTracce, insiemeTrackID, username, apiKey);
+////				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
+////				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+//			} catch (Exception e) {
+//				// TODO: handle exception
+//			} finally {
+//				tx.success();
+//			}
+//		}
+//		
 		//aggiungo artisti nel mio insieme e li collego alle tracce
 		try (Transaction tx = graphDb.beginTx()){
 			String queryString ="";
@@ -174,32 +174,32 @@ public class BeyondBigData {
 			}
 		}
 		System.out.println(insiemeArtisti.size());
-		
-		//dalle nazioni degli utenti, estraggo i concerti eventi e li associo alla nazione e ad artisti
-		try (Transaction tx = graphDb.beginTx()){
-			String queryString ="";
-			Map<String,Object> parameters = new HashMap<String, Object>();
-			try {
-				Methods.estraiEventiDaNazioni (graphDb,resultIterator,countries, username, apiKey);
-			} catch (Exception e) {
-				// TODO: handle exception
-			} finally {
-				tx.success();
-			}
-		}
-		
-		//dagli artisti presenti nel sistema, estraggo i loro futuri eventi e li associo a nazioni e artisti
-		try (Transaction tx = graphDb.beginTx()){
-			String queryString ="";
-			Map<String,Object> parameters = new HashMap<String, Object>();
-			try {
-				Methods.estraiEventiDaArtisti (graphDb,resultIterator,insiemeArtisti, username, apiKey);
-			} catch (Exception e) {
-				// TODO: handle exception
-			} finally {
-				tx.success();
-			}
-		}
-		
+//		
+//		//dalle nazioni degli utenti, estraggo i concerti eventi e li associo alla nazione e ad artisti
+//		try (Transaction tx = graphDb.beginTx()){
+//			String queryString ="";
+//			Map<String,Object> parameters = new HashMap<String, Object>();
+//			try {
+//				Methods.estraiEventiDaNazioni (graphDb,resultIterator,countries, username, apiKey);
+//			} catch (Exception e) {
+//				// TODO: handle exception
+//			} finally {
+//				tx.success();
+//			}
+//		}
+//		
+//		//dagli artisti presenti nel sistema, estraggo i loro futuri eventi e li associo a nazioni e artisti
+//		try (Transaction tx = graphDb.beginTx()){
+//			String queryString ="";
+//			Map<String,Object> parameters = new HashMap<String, Object>();
+//			try {
+//				Methods.estraiEventiDaArtisti (graphDb,resultIterator,insiemeArtisti, username, apiKey);
+//			} catch (Exception e) {
+//				// TODO: handle exception
+//			} finally {
+//				tx.success();
+//			}
+//		}
+//		
 	}
 }
