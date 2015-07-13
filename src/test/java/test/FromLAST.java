@@ -1,4 +1,4 @@
-package prova;
+package test;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,12 +17,12 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.io.fs.FileUtils;
 
+import app.*;
 import de.umass.lastfm.Artist;
 import de.umass.lastfm.Period;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.User;
-import prova.*;
 
 public class FromLAST {
 	private static final String DB_PATH = "util/neo4j-community-2.2.3/data/graph.db/";

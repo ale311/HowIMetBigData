@@ -1,4 +1,4 @@
-package prova;
+package app;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,33 +35,33 @@ public class Interrogazioni {
 
 		Interrogazioni get = new Interrogazioni();
 
-		// get.getAll(graphDb);
-		// get.getUtenti(graphDb);
-//		get.getTracce(graphDb);
-		// get.getAlbums(graphDb);
-		// get.getEventi(graphDb);
-		// get.getTags(graphDb);
-		// get.getNazioni(graphDb);
-		// get.getArtisti(graphDb);
-		//
-		// get.getUtente(graphDb, utente);
-		// get.getTraccia(graphDb, traccia);
-		// get.getAlbum(graphDb, album);
-		// get.getEvento(graphDb, evento);
-		// get.getTag(graphDb, tag);
-		// get.getNazione(graphDb, nazione);
-		// get.getArtista(graphDb, artista);
-		//
-		// get.countAll(graphDb);
-		// get.countUtenti(graphDb);
-		// get.countTracce(graphDb);
-		// get.countAlbums(graphDb);
-		// get.countEventi(graphDb);
-		// get.countTags(graphDb);
-		// get.countNazioni(graphDb);
-		// get.countArtisti(graphDb);
-		//
-//		 get.getUserTracks(graphDb, utente);
+		 get.getAll(graphDb);
+		 get.getUtenti(graphDb);
+		 get.getTracce(graphDb);
+		 get.getAlbums(graphDb);
+		 get.getEventi(graphDb);
+		 get.getTags(graphDb);
+		 get.getNazioni(graphDb);
+		 get.getArtisti(graphDb);
+		
+		 get.getUtente(graphDb, utente);
+		 get.getTraccia(graphDb, traccia);
+		 get.getAlbum(graphDb, album);
+		 get.getEvento(graphDb, evento);
+		 get.getTag(graphDb, tag);
+		 get.getNazione(graphDb, nazione);
+		 get.getArtista(graphDb, artista);
+		
+		 get.countAll(graphDb);
+		 get.countUtenti(graphDb);
+		 get.countTracce(graphDb);
+		 get.countAlbums(graphDb);
+		 get.countEventi(graphDb);
+		 get.countTags(graphDb);
+		 get.countNazioni(graphDb);
+		 get.countArtisti(graphDb);
+		
+		 get.getUserTracks(graphDb, utente);
 		 get.getTagTracks(graphDb, tag);
 		//
 

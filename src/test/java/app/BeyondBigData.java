@@ -1,4 +1,4 @@
-package prova;
+package app;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +67,6 @@ public class BeyondBigData {
 			tx.success();
 		}
 		
-		//DA DECOMMENTARE!
 		
 		try (Transaction tx = graphDb.beginTx()){
 			String queryString ="";
@@ -95,20 +94,6 @@ public class BeyondBigData {
 				tx.success();
 			}
 		}
-
-	//TODO verificare utilità di questo metodo, non dovrebbe essere più utile
-//		System.out.println(insiemeTrackID.size());
-		//aggiungo le tracce dei simili ai simili
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-////			insiemeUtenti = (HashSet<String>) Methods.restituisciUtenti(username, apiKey);
-//			for(String userCorrente : insiemeUtenti){
-//				Methods.collegaUtenteATracce(graphDb, resultIterator, userCorrente, apiKey);
-//			}
-//			tx.success();
-//		}
-////		
 		int j = 0;
 		for(String userCorrente : insiemeUtenti){
 			
@@ -127,39 +112,36 @@ public class BeyondBigData {
 		
 		System.out.println(insiemeTracce.size());
 		
-//		
-//		
-//		
 		//aggiungo TAG corrispondenti alle tracce che ho nel mio insieme: 
 		//passo l'insieme delle trackid e chiedo a mx di restituirmi un tag (Speriamo sia più preciso di last)
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-//			try {
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
+//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
+		}
+		
+		//estraggo topTrack dei GENERI (TAG)
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.estraiTopTrackDaTag(graphDb, resultIterator,musixMatch, insiemeTag, insiemeTracce, insiemeTrackID, username, apiKey);
 //				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
-////				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			} finally {
-//				tx.success();
-//			}
-//		}
-//		
-//		//estraggo topTrack dei GENERI (TAG)
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-//			try {
-//				Methods.estraiTopTrackDaTag(graphDb, resultIterator,musixMatch, insiemeTag, insiemeTracce, insiemeTrackID, username, apiKey);
-////				Methods.collegaTracceAiTag (graphDb,resultIterator, musixMatch,insiemeTag, insiemeTracce, username, apiKey);
-////				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			} finally {
-//				tx.success();
-//			}
-//		}
-//		
+//				Methods.collegaUtenteATracce(graphDb, resultIterator,musixMatch, insiemeTrackID, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
+		}
+		
 		//aggiungo artisti nel mio insieme e li collego alle tracce
 		try (Transaction tx = graphDb.beginTx()){
 			String queryString ="";
@@ -174,32 +156,32 @@ public class BeyondBigData {
 			}
 		}
 		System.out.println(insiemeArtisti.size());
-//		
-//		//dalle nazioni degli utenti, estraggo i concerti eventi e li associo alla nazione e ad artisti
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-//			try {
-//				Methods.estraiEventiDaNazioni (graphDb,resultIterator,countries, username, apiKey);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			} finally {
-//				tx.success();
-//			}
-//		}
-//		
-//		//dagli artisti presenti nel sistema, estraggo i loro futuri eventi e li associo a nazioni e artisti
-//		try (Transaction tx = graphDb.beginTx()){
-//			String queryString ="";
-//			Map<String,Object> parameters = new HashMap<String, Object>();
-//			try {
-//				Methods.estraiEventiDaArtisti (graphDb,resultIterator,insiemeArtisti, username, apiKey);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			} finally {
-//				tx.success();
-//			}
-//		}
-//		
+
+		//dalle nazioni degli utenti, estraggo i concerti eventi e li associo alla nazione e ad artisti
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.estraiEventiDaNazioni (graphDb,resultIterator,countries, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
+		}
+		
+		//dagli artisti presenti nel sistema, estraggo i loro futuri eventi e li associo a nazioni e artisti
+		try (Transaction tx = graphDb.beginTx()){
+			String queryString ="";
+			Map<String,Object> parameters = new HashMap<String, Object>();
+			try {
+				Methods.estraiEventiDaArtisti (graphDb,resultIterator,insiemeArtisti, username, apiKey);
+			} catch (Exception e) {
+				// TODO: handle exception
+			} finally {
+				tx.success();
+			}
+		}
+		
 	}
 }

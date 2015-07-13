@@ -1,4 +1,4 @@
-package prova;
+package app;
 
 import java.util.Collection;
 import java.util.Date;
@@ -99,7 +99,6 @@ public class Methods {
 //		for(User u : User.getNeighbours(username, apiKey)){
 		for(User u : User.getNeighbours(username, 200, apiKey)){
 			result.add(u.getName());
-			//					System.out.println(u.getName());
 		}
 		return result;
 	}

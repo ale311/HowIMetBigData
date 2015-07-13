@@ -1,4 +1,4 @@
-package prova;
+package test;
 
 import org.jmusixmatch.MusixMatch;
 import org.jmusixmatch.MusixMatchException;

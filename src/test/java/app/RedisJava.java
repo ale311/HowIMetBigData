@@ -1,4 +1,4 @@
-package prova;
+package app;
 
 import java.util.List;
 
@@ -18,13 +18,6 @@ public class RedisJava {
 	static String apiKey = "d0c4241612e7a3373d2be60d6a886bda";
 
 	public static void main(String[] args) {
-		// Connecting to Redis server on localhost
-		// System.out.println("Connection to server sucessfully");
-		// check whether server is running or not
-		// System.out.println("Server is running: "+jedis.ping());
-		// System.out.println("prova set di qualcosa: "+jedis.set("1234",
-		// "blablabla"));
-		// System.out.println("prova get di qualcosa: "+jedis.get("1234"));
 
 		Interrogazioni interrogazione = new Interrogazioni();
 

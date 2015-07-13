@@ -1,4 +1,4 @@
-package prova;
+package test;
 
 import java.util.Collection;
 import java.util.HashSet;
