@@ -129,7 +129,7 @@ public class Methods {
 //		HashSet<Track> insiemeTracce = new HashSet<Track>();
 		Map<String,Object> parameters = new HashMap<String, Object>();
 		// TODO Auto-generated method stub
-		PaginatedResult<Track> ascoltiRecentiDaLast = User.getRecentTracks(username, 14, 200, apiKey);
+		PaginatedResult<Track> ascoltiRecentiDaLast = User.getRecentTracks(username, 1, 200, apiKey);
 		Collection<Track> ascoltiTopDaLast = User.getTopTracks(username, apiKey);
 		HashSet<Track> ascoltiDellUtente = new HashSet<Track>();
 		for(Track t : ascoltiRecentiDaLast){
